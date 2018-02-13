@@ -1,0 +1,3 @@
+include ':rfidpassiveapilib', ':txrxlib'
+project(':txrxlib').projectDir = new File('../tt-txrx-lib-android/txrxlib')
+

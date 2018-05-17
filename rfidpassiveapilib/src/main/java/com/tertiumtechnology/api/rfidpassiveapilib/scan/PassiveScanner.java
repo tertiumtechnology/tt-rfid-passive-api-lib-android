@@ -1,10 +1,13 @@
 package com.tertiumtechnology.api.rfidpassiveapilib.scan;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.os.Build;
 
 import com.tertiumtechnology.txrxlib.scan.TxRxScanCallback;
+import com.tertiumtechnology.txrxlib.scan.TxRxScanResult;
 import com.tertiumtechnology.txrxlib.scan.TxRxScanner;
+
+import java.util.Arrays;
 
 /**
  * This class provides methods to perform scan for BLE devices.
@@ -15,29 +18,36 @@ import com.tertiumtechnology.txrxlib.scan.TxRxScanner;
  *
  * @see AbstractScanListener
  */
-public class Scanner {
+public class PassiveScanner {
+
+    private static String[] filteredServiceUuids = new String[]{
+            // TxRxAckme
+            "175f8f23-a570-49bd-9627-815a6a27de2a"
+    };
 
     private AbstractScanListener scanListener;
     private TxRxScanner txRxScanner;
 
     /**
-     * Create a new {@link Scanner} to perform scan for BLE devices.
+     * Create a new {@link PassiveScanner} to perform scan for BLE devices.
      *
      * @param bluetoothAdapter {@link BluetoothAdapter} used to perform BLE task
      * @param scanListener     {@link AbstractScanListener} callback used to deliver scan results
      */
-    public Scanner(BluetoothAdapter bluetoothAdapter, AbstractScanListener scanListener) {
+    public PassiveScanner(BluetoothAdapter bluetoothAdapter, AbstractScanListener scanListener) {
         this.scanListener = scanListener;
 
         TxRxScanCallback txRxScanCallback = new TxRxScanCallback() {
             @Override
             public void afterStopScan() {
-                Scanner.this.scanListener.stopScanEvent();
+                PassiveScanner.this.scanListener.stopScanEvent();
             }
 
             @Override
-            public void onDeviceFound(BluetoothDevice device) {
-                Scanner.this.scanListener.deviceFoundEvent(device);
+            public void onDeviceFound(TxRxScanResult scanResult) {
+                PassiveScanner.this.scanListener.deviceFoundEvent(new BleDevice(scanResult.getBluetoothDevice()
+                        .getName(),
+                        scanResult.getBluetoothDevice().getAddress(), scanResult.getRssi()));
             }
         };
 
@@ -55,7 +65,7 @@ public class Scanner {
 
     /**
      * Start BLE scan. The scan results will be delivered through
-     * {@link AbstractScanListener#deviceFoundEvent(BluetoothDevice)}.
+     * {@link AbstractScanListener#deviceFoundEvent(BleDevice)}.
      * <p>
      * Requires {@link android.Manifest.permission#BLUETOOTH_ADMIN} permission.
      * <p>
@@ -65,7 +75,12 @@ public class Scanner {
      * in order to get results.
      */
     public void startScan() {
-        txRxScanner.startScan();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
+        }
+        else {
+            txRxScanner.startScan();
+        }
     }
 
     /**

@@ -214,14 +214,47 @@ public final class PassiveReader {
                             inventory_listener.inventoryEvent(tag);
                         }
                         if (UHF_device) {
-                            if (chunk.length() > 4) {
-                                short PC = (short) hexToWord(chunk.substring(0, 4));
-                                byte[] ID = new byte[(chunk.length() - 4) / 2];
-                                for (int n = 0; n < ID.length; n++) {
-                                    ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                            int separator_index = chunk.indexOf(" ");
+
+                            if (separator_index < 0) {
+                                if (chunk.length() > 4) {
+                                    short PC = (short) hexToWord(chunk.substring(0, 4));
+                                    byte[] ID = new byte[(chunk.length() - 4) / 2];
+
+                                    for (int n = 0; n < ID.length; n++) {
+                                        ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                                    }
+
+                                    tag = new EPC_tag(PC, ID, passive_reader);
+                                    inventory_listener.inventoryEvent(tag);
                                 }
-                                tag = new EPC_tag(PC, ID, passive_reader);
-                                inventory_listener.inventoryEvent(tag);
+                            }
+                            else {
+                                if (chunk.length() > 7) {
+                                    short PC = (short) hexToWord(chunk.substring(0, 4));
+                                    byte[] ID = new byte[(chunk.length() - 7) / 2];
+
+                                    for (int n = 0; n < ID.length; n++) {
+                                        ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                                    }
+
+                                    String rssi = chunk.substring(separator_index + 1, separator_index + 1 + 2);
+
+                                    int tmp = hexToWord(rssi);
+
+                                    short RSSI;
+
+                                    if (tmp < 127) {
+                                        RSSI = (short) tmp;
+                                    }
+                                    else {
+                                        RSSI = (short) (tmp - 256);
+                                    }
+
+                                    tag = new EPC_tag(RSSI, PC, ID, passive_reader);
+
+                                    inventory_listener.inventoryEvent(tag);
+                                }
                             }
                         }
                     }

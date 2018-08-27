@@ -118,6 +118,7 @@ public class EPC_tag extends Tag {
     public static final int ACCESSPASSWORD_UNREADABLE_UNWRITABLE = 0x300C0F;
 
     private final short PC;
+    private final short RSSI;
 
     /**
      * Class constructor
@@ -129,6 +130,22 @@ public class EPC_tag extends Tag {
     public EPC_tag(short PC, byte[] ID, PassiveReader passive_reader) {
         super(ID, passive_reader);
         this.PC = PC;
+        this.RSSI = -128;
+    }
+
+    /**
+     * Class constructor
+     *
+     * @param RSSI           the tag RSSI at inventory time (dBm)
+     * @param PC             the tag PC (Protocol Code)
+     * @param ID             the tag ID
+     * @param passive_reader reference to the passive reader object
+     */
+
+    public EPC_tag(short RSSI, short PC, byte[] ID, PassiveReader passive_reader) {
+        super(ID, passive_reader);
+        this.PC = PC;
+        this.RSSI = RSSI;
     }
 
     /**
@@ -155,6 +172,15 @@ public class EPC_tag extends Tag {
      */
     public synchronized short getPC() {
         return PC;
+    }
+
+    /**
+     * Get tag RSSI at inventory time.
+     *
+     * @return the tag RSSI value in dBm
+     */
+    public synchronized short getRSSI() {
+        return RSSI;
     }
 
     /**
@@ -237,11 +263,12 @@ public class EPC_tag extends Tag {
      * The result of the read operation is notified invoking response listener
      * method {@link AbstractResponseListener#readEvent(byte[], int, byte[])}  readEvent}.
      *
-     * @param address  the tag memory address
-     * @param blocks   the number of memory 2-bytes blocks to read (1-50)
-     * @param password tag access password (may be null or empty)
+     * @param address the tag memory address
+     * @param blocks  the number of memory 2-bytes blocks to read (1-50)
      */
-    public synchronized void read(int address, int blocks, byte[] password) {
+    //public synchronized void read(int address, int blocks, byte[] password)
+    public synchronized void read(int address, int blocks) {
+
         String tmp, command;
         byte memory_to_read[] = new byte[3];
         byte PC_number[] = new byte[2];
@@ -251,32 +278,42 @@ public class EPC_tag extends Tag {
                     .READER_DRIVER_WRONG_STATUS_ERROR, null);
             return;
         }
+
         if (address < 0 || address > 255) {
             passive_reader.response_listener.readEvent(getExtendedID(), AbstractResponseListener
                     .READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR, null);
             return;
         }
+
         if (blocks < 0 || blocks > 50) {
             passive_reader.response_listener.readEvent(getExtendedID(), AbstractResponseListener
                     .READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR, null);
             return;
         }
+
         memory_to_read[0] = (byte) USER_MEMORY_BANK;
         memory_to_read[1] = (byte) address;
         memory_to_read[2] = (byte) blocks;
+
         tmp = String.format("%04X", PC);
+
         PC_number[0] = (byte) PassiveReader.hexToByte(tmp.substring(0, 2));
         PC_number[1] = (byte) PassiveReader.hexToByte(tmp.substring(2, 4));
+
         passive_reader.status = PassiveReader.PENDING_COMMAND_STATUS;
         passive_reader.pending = AbstractResponseListener.READ_COMMAND;
         passive_reader.tag_id = getExtendedID();
+
         command = passive_reader.buildCommand(PassiveReader.EPC_READ_COMMAND, (byte) (timeout / 100), PC_number[0],
                 PC_number[1]);
         command = passive_reader.appendDataToCommand(command, ID);
         command = passive_reader.appendDataToCommand(command, memory_to_read);
-        if (password != null) {
+
+        /*
+        if (password != null)
             command = passive_reader.appendDataToCommand(command, password);
-        }
+        */
+
         passive_reader.device_manager.requestWriteData(command);
     }
 
@@ -422,7 +459,7 @@ public class EPC_tag extends Tag {
         }
 
         memory_to_write[0] = (byte) RESERVED_MEMORY_BANK;
-        memory_to_write[1] = (byte) KILL_PASSWORD_ADDRESS;
+        memory_to_write[1] = (byte) ACCESS_PASSWORD_ADDRESS;
         memory_to_write[2] = (byte) (2);
         tmp = String.format("%04X", PC);
         PC_number[0] = (byte) PassiveReader.hexToByte(tmp.substring(0, 2));

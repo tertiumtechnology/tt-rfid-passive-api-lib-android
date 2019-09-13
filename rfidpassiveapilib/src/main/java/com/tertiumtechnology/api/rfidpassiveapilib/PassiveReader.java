@@ -1204,7 +1204,7 @@ public final class PassiveReader {
         }
         status = PassiveReader.PENDING_COMMAND_STATUS;
         pending = AbstractReaderListener.ISO15693_ENCRYPTEDTUNNEL_COMMAND;
-        device_manager.requestWriteData(buildTunnelCommand(frame));
+        device_manager.requestWriteData(buildTunnelCommand(true, frame));
     }
 
     /**
@@ -1227,7 +1227,7 @@ public final class PassiveReader {
         }
         status = PassiveReader.PENDING_COMMAND_STATUS;
         pending = AbstractReaderListener.ISO15693_TUNNEL_COMMAND;
-        device_manager.requestWriteData(buildTunnelCommand(command));
+        device_manager.requestWriteData(buildTunnelCommand(false, command));
     }
 
     /**
@@ -2098,8 +2098,14 @@ public final class PassiveReader {
         return command;
     }
 
-    protected String buildTunnelCommand(byte... parameters) {
-        String command = "#:";
+    protected String buildTunnelCommand(boolean encrypted, byte... parameters) {
+        String command;
+        if (encrypted) {
+            command = "%:";
+        }
+        else {
+            command = "#:";
+        }
         for (byte parameter : parameters) {
             String tmp = byteToHex(parameter);
             command += tmp;

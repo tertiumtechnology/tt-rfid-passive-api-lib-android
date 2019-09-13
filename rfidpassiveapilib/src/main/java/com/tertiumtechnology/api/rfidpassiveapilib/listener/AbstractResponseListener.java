@@ -38,7 +38,7 @@ import com.tertiumtechnology.api.rfidpassiveapilib.ISO15693_tag;
 public abstract class AbstractResponseListener {
 
     /**
-     * {@link EPC_tag#read(int, int, byte[]) read} or
+     * {@link EPC_tag#read(int, int) read} or
      * {@link ISO15693_tag#read(int, int) read} command.
      */
     public static final int READ_COMMAND = 100;
@@ -157,7 +157,7 @@ public abstract class AbstractResponseListener {
     public abstract void lockEvent(byte[] tag_ID, int error);
 
     /**
-     * Invoked after a {@link EPC_tag#read(int, int, byte[]) read} or
+     * Invoked after a {@link EPC_tag#read(int, int) read} or
      * {@link ISO15693_tag#read(int, int) read} method invocation to notify
      * result.
      *

@@ -4,7 +4,14 @@ import com.tertiumtechnology.txrxlib.rw.TxRxTimeouts;
 
 public class BleSettings {
 
-    private static BleSettings defaultBleSettings = new BleSettings();
+    private static final long CONNECTION_TIMEOUT_PASSIVE_DEFAULT_VALUE = 20000;
+    private static final long WRITE_TIMEOUT_PASSIVE_DEFAULT_VALUE = 1000;
+    private static final long FIRST_READ_TIMEOUT_PASSIVE_DEFAULT_VALUE = 2500;
+    private static final long LATER_READ_TIMEOUT_PASSIVE_DEFAULT_VALUE = 200;
+
+    private static BleSettings defaultBleSettings = new BleSettings(CONNECTION_TIMEOUT_PASSIVE_DEFAULT_VALUE,
+            WRITE_TIMEOUT_PASSIVE_DEFAULT_VALUE, FIRST_READ_TIMEOUT_PASSIVE_DEFAULT_VALUE,
+            LATER_READ_TIMEOUT_PASSIVE_DEFAULT_VALUE);
 
     /**
      * Returns a {@link BleSettings}, configured with default settings

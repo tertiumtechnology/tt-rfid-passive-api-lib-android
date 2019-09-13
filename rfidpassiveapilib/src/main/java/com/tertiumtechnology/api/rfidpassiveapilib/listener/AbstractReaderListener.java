@@ -600,15 +600,6 @@ public abstract class AbstractReaderListener {
     public abstract void batteryStatusEvent(int status);
 
     /**
-     * Invoked after a {@link PassiveReader#getFirmwareVersion()
-     * getFirmwareVersion} method invocation to notify result.
-     *
-     * @param major the firmware version major number
-     * @param minor the firmware version minor number
-     */
-    public abstract void firmwareVersionEvent(int major, int minor);
-
-    /**
      * Invoked after a {@link PassiveReader#connect(String, android.content.Context)} method invocation
      * to notify failure.
      *
@@ -627,6 +618,15 @@ public abstract class AbstractReaderListener {
      * to notify success.
      */
     public abstract void disconnectionSuccessEvent();
+
+    /**
+     * Invoked after a {@link PassiveReader#getFirmwareVersion()
+     * getFirmwareVersion} method invocation to notify result.
+     *
+     * @param major the firmware version major number
+     * @param minor the firmware version minor number
+     */
+    public abstract void firmwareVersionEvent(int major, int minor);
 
     /**
      * Invoked after a class {@code PassiveReader} method invocation to notify

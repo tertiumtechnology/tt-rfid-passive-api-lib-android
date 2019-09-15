@@ -188,7 +188,7 @@ public final class PassiveReader {
                     answer = new ReaderAnswer(chunk);
                 }
                 else {
-                    if (chunk.charAt(0) == '#') {
+                    if ((chunk.charAt(0) == '#') || (chunk.charAt(0) == '%')) {
                         // tunnel command answer
                         tunnel_answer = new byte[(chunk.length() - 2) / 2];
                         for (int n = 0; n < tunnel_answer.length; n++) {

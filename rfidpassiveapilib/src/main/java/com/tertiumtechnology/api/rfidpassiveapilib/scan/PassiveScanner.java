@@ -21,8 +21,8 @@ import java.util.Arrays;
 public class PassiveScanner {
 
     private static String[] filteredServiceUuids = new String[]{
-            // TxRxAckme
-            "175f8f23-a570-49bd-9627-815a6a27de2a"
+            "175f8f23-a570-49bd-9627-815a6a27de2a", // TxRxAckme
+            "3cc30001-cb91-4947-bd12-80d2f0535a30" // Zhaga
     };
 
     private AbstractScanListener scanListener;

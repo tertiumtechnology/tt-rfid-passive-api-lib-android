@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Tertium Technology.
+ * Copyright 2020 Tertium Technology.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -173,6 +173,14 @@ public abstract class AbstractReaderListener {
      * {@link PassiveReader#isUHF() isUHF} command.
      */
     public static final int IS_UHF_COMMAND = 27;
+    /**
+     * {@link PassiveReader#setSecurityLevel(int) setSecurityLevel} command.
+     */
+    public static final int SET_SECURITY_LEVEL_COMMAND = 28;
+    /**
+     * {@link PassiveReader#getSecurityLevel() getSecurityLevel} command.
+     */
+    public static final int GET_SECURITY_LEVEL_COMMAND = 29;
 
     /**
      * Successful command code (no error).
@@ -295,6 +303,31 @@ public abstract class AbstractReaderListener {
      * Reader driver command wrong parameter error.
      */
     public static final int READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR = 0x25;
+    /**
+     * Reader driver command answer mismatch error.
+     */
+    public static final int READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR = 0x26;
+    /**
+     * Reader driver change-mode error.
+     */
+    public static final int READER_DRIVER_COMMAND_CHANGE_MODE_ERROR = 0x27;
+    /**
+     * Reader command mode answer error.
+     */
+    public static final int READER_DRIVER_COMMAND_CMD_MODE_ANSWER_ERROR = 0x28;
+    /**
+     * Reader set-mode error: BLE device error.
+     */
+    public static final int READER_SET_MODE_BLE_DEVICE_ERROR = 0x29;
+    /**
+     * Reader set-mode error: invalid MODE characteristic.
+     */
+    public static final int READER_SET_MODE_INVALID_CHARACTERISTIC_ERROR = 0x2A;
+    /**
+     * Reader set-mode error: previous operation in progress.
+     */
+    public static final int READER_SET_MODE_OPERATION_IN_PROGRESS_ERROR = 0x2B;
+
 
     /**
      * Low battery status
@@ -523,6 +556,19 @@ public abstract class AbstractReaderListener {
     public static final int RF_CARRIER_925_25_MHZ = 0x10;
 
     /**
+     * BLE security level 1 (no security).
+     */
+    public static final int BLE_NO_SECURITY = 0x00;
+    /**
+     * Legacy BLE security level 2.
+     */
+    public static final int BLE_LEGACY_LEVEL_2_SECURITY = 0x01;
+    /**
+     * LESC BLE security level 2.
+     */
+    public static final int BLE_LESC_LEVEL_2_SECURITY = 0x02;
+
+    /**
      * Invoked after a {@link PassiveReader#getEPCfrequency() getEPCfrequency}
      * method invocation to notify result.
      *
@@ -636,6 +682,14 @@ public abstract class AbstractReaderListener {
      * @param error   the error code
      */
     public abstract void resultEvent(int command, int error);
+
+    /**
+     * Invoked after a {@link PassiveReader#getSecurityLevel() getSecurityLevel}
+     * method invocation to notify result.
+     *
+     * @param level  the current security level
+     */
+    public abstract void securityLevelEvent(int level);
 
     /**
      * Invoked after a {@link PassiveReader#getShutdownTime() getShutdownTime}

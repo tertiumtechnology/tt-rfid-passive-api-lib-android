@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Tertium Technology.
+ * Copyright 2020 Tertium Technology.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -118,6 +118,7 @@ public final class PassiveReader {
         protected DeviceCallback(PassiveReader passive_reader) {
             this.passive_reader = passive_reader;
             status = NOT_INITIALIZED_STATUS;
+            sub_status = STREAM_SUBSTATUS;
         }
 
         @Override
@@ -167,6 +168,7 @@ public final class PassiveReader {
             System.err.println("Disconnected.");
             reader_listener.disconnectionSuccessEvent();
             status = NOT_INITIALIZED_STATUS;
+            sub_status = STREAM_SUBSTATUS;
         }
 
         @Override
@@ -174,7 +176,32 @@ public final class PassiveReader {
             ReaderAnswer answer = null;
             byte tunnel_answer[] = null;
             Tag tag = null;
+
             System.err.println("\"" + data + "\" received.");
+            if (sub_status == CMD_SUBSTATUS) {
+                if (data == null || data.isEmpty()) {
+                    reader_listener.resultEvent(pending,
+                            AbstractReaderListener.READER_DRIVER_COMMAND_CMD_MODE_ANSWER_ERROR);
+                }
+                else {
+                    if (data.charAt(0) != '>') {
+                        switch (pending) {
+                            case AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND:
+                                if (data.charAt(0) == '0') {
+                                    reader_listener.securityLevelEvent(BLE_NO_SECURITY);
+                                }
+                                else // data.charAt(0) == '1'
+                                {
+                                    reader_listener.securityLevelEvent(BLE_LEGACY_LEVEL_2_SECURITY);
+                                }
+                                break;
+                        }
+                    }
+                    sub_status = SET_STREAM_SUBSTATUS;
+                    device_manager.requestSetMode(STREAM_MODE);
+                }
+                return;
+            }
             if (data == null || data.isEmpty()) {
                 status = READY_STATUS;
                 return;
@@ -183,6 +210,9 @@ public final class PassiveReader {
             String[] dataChunks = data.split("\r\n");
 
             for (String chunk : dataChunks) {
+                if (data.startsWith("> ")) {
+                    return;
+                }
                 if (chunk.charAt(0) == '$') {
                     // command answer
                     answer = new ReaderAnswer(chunk);
@@ -196,6 +226,11 @@ public final class PassiveReader {
                         }
                     }
                     else {
+                        // check for valid ID chars
+                        for (int n = 0; n < chunk.length(); n++)
+                            if (Character.digit(chunk.charAt(n), 16) < 0) {
+                                return;
+                            }
                         // tag info
                         if (HF_device) {
                             byte[] ID = new byte[chunk.length() / 2];
@@ -307,7 +342,7 @@ public final class PassiveReader {
                         if (answer.getReturnCode() != SUCCESSFUL_OPERATION_RETCODE) {
                             status = READY_STATUS;
                             if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                                    pending <= AbstractReaderListener.ISO15693_ENCRYPTEDTUNNEL_COMMAND) {
+                                    pending <= AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND) {
                                 reader_listener.resultEvent(pending, answer.getReturnCode());
                             }
                             else {
@@ -348,6 +383,7 @@ public final class PassiveReader {
                             case AbstractReaderListener.SET_ISO15693_EXTENSION_FLAG_COMMAND:
                             case AbstractReaderListener.SET_ISO15693_BITRATE_COMMAND:
                             case AbstractReaderListener.SET_EPC_FREQUENCY_COMMAND:
+                            case AbstractReaderListener.SET_SECURITY_LEVEL_COMMAND:
                                 reader_listener.resultEvent(pending, answer.getReturnCode());
                                 break;
                             case AbstractReaderListener.SET_INVENTORY_MODE_COMMAND:
@@ -475,7 +511,14 @@ public final class PassiveReader {
                                 }
                                 reader_listener.resultEvent(pending, answer.getReturnCode());
                                 break;
-
+                            case AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND:
+                                if (answer.getReturnCode() == AbstractReaderListener.NO_ERROR &&
+                                        answer.getData().length > 0) {
+                                    int level = byteToInt(answer.getData()[0]);
+                                    reader_listener.securityLevelEvent(level);
+                                }
+                                reader_listener.resultEvent(pending, answer.getReturnCode());
+                                break;
                             case AbstractResponseListener.READ_COMMAND:
                                 response_listener.readEvent(tag_id, answer.getReturnCode(), answer.getData());
                                 break;
@@ -549,8 +592,13 @@ public final class PassiveReader {
                 case READY_STATUS:
                     break;
                 case PENDING_COMMAND_STATUS:
+                    if (sub_status == CMD_SUBSTATUS) {
+                        sub_status = SET_STREAM_SUBSTATUS;
+                        device_manager.requestSetMode(STREAM_MODE);
+                        break;
+                    }
                     if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending <= AbstractReaderListener.ISO15693_ENCRYPTEDTUNNEL_COMMAND) {
+                            pending <= AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND) {
                         reader_listener.resultEvent(pending, error);
                     }
                     else {
@@ -597,8 +645,13 @@ public final class PassiveReader {
                 case READY_STATUS:
                     break;
                 case PENDING_COMMAND_STATUS:
+                    if (sub_status == CMD_SUBSTATUS) {
+                        sub_status = SET_STREAM_SUBSTATUS;
+                        device_manager.requestSetMode(STREAM_MODE);
+                        break;
+                    }
                     if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending <= AbstractReaderListener.ISO15693_ENCRYPTEDTUNNEL_COMMAND) {
+                            pending <= AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND) {
                         reader_listener.resultEvent(pending, AbstractReaderListener.READER_READ_TIMEOUT_ERROR);
                     }
                     else {
@@ -639,9 +692,113 @@ public final class PassiveReader {
         }
 
         @Override
+        public void onSetMode(int mode) {
+            System.err.println("\"" + mode + "\" set.");
+            switch (status) {
+                case ERROR_STATUS:
+                case NOT_INITIALIZED_STATUS:
+                case UNINITIALIZED_STATUS:
+                    status = ERROR_STATUS;
+                    break;
+                case READY_STATUS:
+                    if (mode == STREAM_MODE) {
+                        sub_status = STREAM_SUBSTATUS;
+                    }
+                    else {
+                        status = ERROR_STATUS;
+                    }
+                    break;
+                case PENDING_COMMAND_STATUS:
+                    switch (sub_status) {
+                        case STREAM_SUBSTATUS:
+                        case CMD_SUBSTATUS:
+                            status = ERROR_STATUS;
+                            break;
+                        case SET_CMD_SUBSTATUS:
+                            if (mode == CMD_MODE) {
+                                sub_status = CMD_SUBSTATUS;
+                                device_manager.requestWriteData(command + "\r\n");
+                            }
+                            else {
+                                status = ERROR_STATUS;
+                            }
+                            break;
+                        case SET_STREAM_SUBSTATUS:
+                            if (mode == STREAM_MODE) {
+                                sub_status = STREAM_SUBSTATUS;
+                                status = READY_STATUS;
+                                reader_listener.resultEvent(pending, AbstractReaderListener.NO_ERROR);
+                            }
+                            else {
+                                status = ERROR_STATUS;
+                            }
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        @Override
+        public void onSetModeError(int errorCode) {
+            System.err.println("Setmode error!");
+            switch (status) {
+                case ERROR_STATUS:
+                case NOT_INITIALIZED_STATUS:
+                case UNINITIALIZED_STATUS:
+                case READY_STATUS:
+                    status = ERROR_STATUS;
+                    break;
+                case PENDING_COMMAND_STATUS:
+                    switch (sub_status) {
+                        case STREAM_SUBSTATUS:
+                        case CMD_SUBSTATUS:
+                        case SET_STREAM_SUBSTATUS:
+                            status = ERROR_STATUS;
+                            break;
+                        case SET_CMD_SUBSTATUS:
+                            status = READY_STATUS;
+                            sub_status = STREAM_SUBSTATUS;
+                            reader_listener.resultEvent(pending,
+                             AbstractReaderListener.READER_DRIVER_COMMAND_CHANGE_MODE_ERROR);
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        @Override
+        public void onSetModeTimeout() {
+            System.err.println("Setmode timeout!");
+            switch (status) {
+                case ERROR_STATUS:
+                case NOT_INITIALIZED_STATUS:
+                case UNINITIALIZED_STATUS:
+                case READY_STATUS:
+                    status = ERROR_STATUS;
+                    break;
+                case PENDING_COMMAND_STATUS:
+                    switch (sub_status) {
+                        case STREAM_SUBSTATUS:
+                        case CMD_SUBSTATUS:
+                        case SET_STREAM_SUBSTATUS:
+                            status = ERROR_STATUS;
+                            break;
+                        case SET_CMD_SUBSTATUS:
+                            status = READY_STATUS;
+                            sub_status = STREAM_SUBSTATUS;
+                            reader_listener.resultEvent(pending,
+                             AbstractReaderListener.READER_DRIVER_COMMAND_CHANGE_MODE_ERROR);
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        @Override
         public void onTxRxServiceDiscovered() {
             System.err.println("TxRx service discovered.");
             status = UNINITIALIZED_STATUS;
+            sub_status = STREAM_SUBSTATUS;
 
             new Handler(Looper.getMainLooper()).postDelayed(
                     new Runnable() {
@@ -693,8 +850,13 @@ public final class PassiveReader {
                 case READY_STATUS:
                     break;
                 case PENDING_COMMAND_STATUS:
+                    if (sub_status == CMD_SUBSTATUS) {
+                        sub_status = SET_STREAM_SUBSTATUS;
+                        device_manager.requestSetMode(STREAM_MODE);
+                        break;
+                    }
                     if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending <= AbstractReaderListener.ISO15693_ENCRYPTEDTUNNEL_COMMAND) {
+                            pending <= AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND) {
                         reader_listener.resultEvent(pending, error);
                     }
                     else {
@@ -741,8 +903,13 @@ public final class PassiveReader {
                 case READY_STATUS:
                     break;
                 case PENDING_COMMAND_STATUS:
+                    if (sub_status == CMD_SUBSTATUS) {
+                        sub_status = SET_STREAM_SUBSTATUS;
+                        device_manager.requestSetMode(STREAM_MODE);
+                        break;
+                    }
                     if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending <= AbstractReaderListener.ISO15693_ENCRYPTEDTUNNEL_COMMAND) {
+                            pending <= AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND) {
                         reader_listener.resultEvent(pending, AbstractReaderListener.READER_WRITE_TIMEOUT_ERROR);
                     }
                     else {
@@ -1048,6 +1215,18 @@ public final class PassiveReader {
      * UHF reader device RF carrier frequency 925.25MHz (no frequency hopping)
      */
     public static final int RF_CARRIER_925_25_MHZ = 0x10;
+    /**
+     * BLE security level 1 (no security).
+     */
+    public static final int BLE_NO_SECURITY = 0x00;
+    /**
+     * Legacy BLE security level 2.
+     */
+    public static final int BLE_LEGACY_LEVEL_2_SECURITY = 0x01;
+    /**
+     * LESC BLE security level 2.
+     */
+    public static final int BLE_LESC_LEVEL_2_SECURITY = 0x02;
 
     private static final byte REGISTER_RF_CHANNEL_SELECTION = (byte) (0xF0);
     private static final byte REGISTER_BIT_RATE_SELECTION = (byte) (0xF1);
@@ -1082,8 +1261,15 @@ public final class PassiveReader {
     protected static final int UNINITIALIZED_STATUS = 1;
     protected static final int READY_STATUS = 3;
     protected static final int PENDING_COMMAND_STATUS = 4;
+    protected static final int STREAM_SUBSTATUS = 0;
+    protected static final int SET_CMD_SUBSTATUS = 1;
+    protected static final int CMD_SUBSTATUS = 2;
+    protected static final int SET_STREAM_SUBSTATUS = 3;
+    protected static final int STREAM_MODE = 1;
+    protected static final int CMD_MODE = 3;
     protected static final byte BEEPER_COMMAND = 0x01;
     protected static final byte LED_COMMAND = 0x02;
+    protected static final byte BLE_CONFIG_COMMAND = 0x04;
     protected static final byte STATUS_COMMAND = 0x05;
     protected static final byte MODE_COMMAND = 0x06;
     protected static final byte SETAUTOOFF_COMMAND = 0x0D;
@@ -1104,6 +1290,18 @@ public final class PassiveReader {
     protected static final byte ISO15693_SETREGISTER_COMMAND = 0x2E;
     protected static final byte ISO15693_SETPOWER_COMMAND = 0x2F;
     protected static final byte ISO14443A_INVENTORY_COMMAND = 0x31;
+    protected static final byte BLE_DEVICE_NAME = 0x01;
+    protected static final byte BLE_SECURITY_LEVEL = 0x02;
+    protected static final byte BLE_ADVERTISING_INTERVAL = 0x03;
+    protected static final byte BLE_TX_POWER = 0x04;
+    protected static final byte BLE_CONNECTION_INTERVAL = 0x05;
+    protected static final byte BLE_MAC_ADDRESS = 0x06;
+    protected static final byte BLE_SLAVE_LATENCY = 0x07;
+    protected static final byte BLE_SUPERVISION_TIMEOUT = 0x08;
+    protected static final byte BLE_VERSION = 0x09;
+    protected static final byte BLE_USER_MEMORY = 0x0A;
+    protected static final byte BLE_FACTORY_DEFAULT = (byte) (0xF0);
+    protected static final byte BLE_BOOTLOADER = (byte) (0xF1);
     protected static final byte SUCCESSFUL_OPERATION_RETCODE = 0x00;
     protected static final byte INVALID_MEMORY_RETCODE = 0x01;
     protected static final byte LOCKED_MEMORY_RETCODE = 0x02;
@@ -1120,6 +1318,7 @@ public final class PassiveReader {
 
     protected static AbstractResponseListener response_listener;
     protected static TxRxDeviceManager device_manager;
+    protected static volatile String command;
 
     public static PassiveReader getInstance(AbstractInventoryListener inventory_listener,
                                             AbstractReaderListener reader_listener,
@@ -1148,7 +1347,6 @@ public final class PassiveReader {
     protected static int hexToWord(String hex) {
         return Integer.valueOf(hex, 16);
     }
-
     private volatile int inventory_mode, mode;
     private volatile int inventory_feedback, feedback;
     private volatile int inventory_format, format;
@@ -1160,6 +1358,7 @@ public final class PassiveReader {
     private volatile boolean UHF_device;
     private volatile boolean inventory_enabled;
     protected volatile int status;
+    protected volatile int sub_status;
     protected volatile int sequential;
     protected volatile int pending;
     protected volatile byte[] tag_id;
@@ -1495,6 +1694,33 @@ public final class PassiveReader {
         }
         else { // UHF_device
             device_manager.requestWriteData(buildCommand(EPC_SETPOWER_COMMAND));
+        }
+    }
+
+    /**
+     * Get the reader device security level.
+     * <p>
+     * Response to the command received via {@link
+     * AbstractReaderListener#resultEvent(int, int) resultEvent} and {@link
+     * AbstractReaderListener#securityLevelEvent(int) securityLevelEvent} methods
+     * invocation.
+     */
+    public synchronized void getSecurityLevel() {
+        int s = status;
+        if (status != READY_STATUS) {
+            reader_listener.resultEvent(AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND,
+             AbstractReaderListener.READER_DRIVER_WRONG_STATUS_ERROR);
+            return;
+        }
+        status = PENDING_COMMAND_STATUS;
+        pending = AbstractReaderListener.GET_SECURITY_LEVEL_COMMAND;
+        if (device_manager.isTxRxAckme()) {
+            sub_status = SET_CMD_SUBSTATUS;
+            command = "get bl e e";
+            device_manager.requestSetMode(CMD_MODE);
+        }
+        else {
+            device_manager.requestWriteData(buildCommand(BLE_CONFIG_COMMAND, BLE_SECURITY_LEVEL));
         }
     }
 
@@ -1933,6 +2159,39 @@ public final class PassiveReader {
         else { // UHF_device
             device_manager.requestWriteData(buildCommand(EPC_SETPOWER_COMMAND, (byte) (level), (byte) (mode)));
         }
+    }
+
+    /**
+     * Set the reader device security level.
+     * <p>
+     * Response to the command received via {@link
+     * AbstractReaderListener#resultEvent(int, int) resultEvent} method
+     * invocation.
+     * The new security level will be set after a power off/on cycle of the
+     * reader device.
+     *
+     * @param level the new security level
+     */
+    public synchronized void setSecurityLevel(int level) {
+        int s = status;
+        if (status != READY_STATUS) {
+            reader_listener.resultEvent(AbstractReaderListener.SET_SECURITY_LEVEL_COMMAND,
+             AbstractReaderListener.READER_DRIVER_WRONG_STATUS_ERROR);
+            return;
+        }
+        if (device_manager.isTxRxAckme()) {
+            reader_listener.resultEvent(AbstractReaderListener.SET_SECURITY_LEVEL_COMMAND,
+             AbstractReaderListener.READER_DRIVER_UNKNOW_COMMAND_ERROR);
+            return;
+        }
+        if (level < BLE_NO_SECURITY || level > BLE_LESC_LEVEL_2_SECURITY) {
+            reader_listener.resultEvent(AbstractReaderListener.SET_SECURITY_LEVEL_COMMAND,
+             AbstractReaderListener.READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR);
+            return;
+        }
+        status = PENDING_COMMAND_STATUS;
+        pending = AbstractReaderListener.SET_SECURITY_LEVEL_COMMAND;
+        device_manager.requestWriteData(buildCommand(BLE_CONFIG_COMMAND, BLE_SECURITY_LEVEL, (byte) (level)));
     }
 
     /**

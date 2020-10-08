@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2017 Tertium Technology.
+ * Copyright 2020 Tertium Technology.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -137,6 +137,18 @@ public abstract class AbstractResponseListener {
      * Reader driver command wrong parameter error.
      */
     public static final int READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR = 0x25;
+    /**
+     * Reader driver command answer mismatch error.
+     */
+    public static final int READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR = 0x26;
+    /**
+     * Reader driver change-mode error.
+     */
+    public static final int READER_DRIVER_COMMAND_CHANGE_MODE_ERROR = 0x27;
+    /**
+     * Reader command mode answer error.
+     */
+    public static final int READER_DRIVER_COMMAND_CMD_MODE_ANSWER_ERROR = 0x28;
 
     /**
      * Invoked after a {@link EPC_tag#kill(byte[]) kill} method invocation to

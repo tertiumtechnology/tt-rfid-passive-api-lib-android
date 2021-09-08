@@ -69,10 +69,10 @@ public class PassiveScanner {
      * <p>
      * Requires {@link android.Manifest.permission#BLUETOOTH_ADMIN} permission.
      * <p>
-     * An app must hold
-     * {@link android.Manifest.permission#ACCESS_COARSE_LOCATION ACCESS_COARSE_LOCATION} or
-     * {@link android.Manifest.permission#ACCESS_FINE_LOCATION ACCESS_FINE_LOCATION} permission
+     * An app must have {@link android.Manifest.permission#ACCESS_COARSE_LOCATION ACCESS_COARSE_LOCATION} permission
      * in order to get results.
+     * An App targeting Android Q or later must have {@link android.Manifest.permission#ACCESS_FINE_LOCATION
+     * ACCESS_FINE_LOCATION} permission in order to get results.
      */
     public void startScan() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2020 Tertium Technology.
+ * Copyright 2021 Tertium Technology.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,7 +35,6 @@ import com.tertiumtechnology.api.rfidpassiveapilib.PassiveReader;
  * methods invocation.
  */
 public abstract class AbstractReaderListener {
-
     /**
      * Inventory scan started by {@link PassiveReader#doInventory()
      * doInventory} method invocation.
@@ -181,6 +180,214 @@ public abstract class AbstractReaderListener {
      * {@link PassiveReader#getSecurityLevel() getSecurityLevel} command.
      */
     public static final int GET_SECURITY_LEVEL_COMMAND = 29;
+    /**
+     * {@link PassiveReader#setName(String) setName} command.
+     */
+    public static final int SET_DEVICE_NAME_COMMAND = 30;
+    /**
+     * {@link PassiveReader#getName() getName} command.
+     */
+    public static final int GET_DEVICE_NAME_COMMAND = 31;
+    /**
+     * {@link PassiveReader#setAdvertisingInterval(int) setAdvertisingInterval} command.
+     */
+    public static final int SET_ADVERTISING_INTERVAL_COMMAND = 32;
+    /**
+     * {@link PassiveReader#getAdvertisingInterval() getAdvertisingInterval} command.
+     */
+    public static final int GET_ADVERTISING_INTERVAL_COMMAND = 33;
+    /**
+     * {@link PassiveReader#setBLEpower(int) setBLEpower} command.
+     */
+    public static final int SET_BLE_POWER_COMMAND = 34;
+    /**
+     * {@link PassiveReader#getBLEpower() getBLEpower} command.
+     */
+    public static final int GET_BLE_POWER_COMMAND = 35;
+    /**
+     * {@link PassiveReader#setConnectionInterval(float, float) setConnectionInterval} command.
+     */
+    public static final int SET_CONNECTION_INTERVAL_COMMAND = 36;
+    /**
+     * {@link PassiveReader#getConnectionInterval() getConnectionInterval} command.
+     */
+    public static final int GET_CONNECTION_INTERVAL_COMMAND = 37;
+    /**
+     * {@link PassiveReader#getConnectionIntervalAndMTU() getConnectionIntervalAndMTU} command.
+     */
+    public static final int GET_CONNECTION_INTERVAL_AND_MTU_COMMAND = 38;
+    /**
+     * {@link PassiveReader#getMACaddress() getMACaddress} command.
+     */
+    public static final int GET_MAC_ADDRESS_COMMAND = 39;
+    /**
+     * {@link PassiveReader#setSlaveLatency(int) setSlaveLatency} command.
+     */
+    public static final int SET_SLAVE_LATENCY_COMMAND = 40;
+    /**
+     * {@link PassiveReader#getSlaveLatency() getSlaveLatency} command.
+     */
+    public static final int GET_SLAVE_LATENCY_COMMAND = 41;
+    /**
+     * {@link PassiveReader#setSupervisionTimeout(int) setSupervisionTimeout} command.
+     */
+    public static final int SET_SUPERVISION_TIMEOUT_COMMAND = 42;
+    /**
+     * {@link PassiveReader#getSupervisionTimeout() getSupervisionTimeout} command.
+     */
+    public static final int GET_SUPERVISION_TIMEOUT_COMMAND = 43;
+    /**
+     * {@link PassiveReader#getBLEfirmwareVersion() getBLEfirmwareVersion} command.
+     */
+    public static final int GET_BLE_FIRMWARE_VERSION_COMMAND = 44;
+    /**
+     * {@link PassiveReader#readUserMemory(int) readUserMemory} command.
+     */
+    public static final int READ_USER_MEMORY_COMMAND = 45;
+    /**
+     * {@link PassiveReader#writeUserMemory(int, byte[]) writeUserMemory} command.
+     */
+    public static final int WRITE_USER_MEMORY_COMMAND = 46;
+    /**
+     * {@link PassiveReader#defaultSetup() defaultSetup} command.
+     */
+    public static final int DEFAULT_SETUP_COMMAND = 47;
+    /**
+     * {@link PassiveReader#reset(boolean) reset} command.
+     */
+    public static final int RESET_COMMAND = 48;
+    /**
+     * {@link PassiveReader#defaultBLEconfiguration(int, boolean) defaultBLEconfiguration} command.
+     */
+    public static final int DEFAULT_BLE_CONFIGURATION_COMMAND = 49;
+    /**
+     * {@link PassiveReader#getHMIsupport() getHMIsupport} command.
+     */
+    public static final int ZHAGA_GET_HMI_SUPPORT_COMMAND = 50;
+    /**
+     * {@link PassiveReader#setHMI(int, int, int, int, int, int, int, int, int, int, int) setHMI} command.
+     */
+    public static final int ZHAGA_SET_HMI_COMMAND = 51;
+    /**
+     * {@link PassiveReader#setRF(boolean) setRF} command.
+     */
+    public static final int ZHAGA_SET_RF_COMMAND = 52;
+    /**
+     * {@link PassiveReader#getRF() getRF} command.
+     */
+    public static final int ZHAGA_GET_RF_COMMAND = 53;
+    /**
+     * {@link PassiveReader#off() off} command.
+     */
+    public static final int ZHAGA_OFF_COMMAND = 54;
+    /**
+     * {@link PassiveReader#reboot() reboot} command.
+     */
+    public static final int ZHAGA_REBOOT_COMMAND = 55;
+    /**
+     * {@link PassiveReader#setSoundForInventory(int, int, int, int) setSoundForInventory} command.
+     */
+    public static final int ZHAGA_SET_INVENTORY_SOUND_COMMAND = 56;
+    /**
+     * {@link PassiveReader#getSoundForInventory() getSoundForInventory} command.
+     */
+    public static final int ZHAGA_GET_INVENTORY_SOUND_COMMAND = 57;
+    /**
+     * {@link PassiveReader#setSoundForCommand(int, int, int, int) setSoundForCommand} command.
+     */
+    public static final int ZHAGA_SET_COMMAND_SOUND_COMMAND = 58;
+    /**
+     * {@link PassiveReader#getSoundForCommand() getSoundForCommand} command.
+     */
+    public static final int ZHAGA_GET_COMMAND_SOUND_COMMAND = 59;
+    /**
+     * {@link PassiveReader#setSoundForError(int, int, int, int) setSoundForError} command.
+     */
+    public static final int ZHAGA_SET_ERROR_SOUND_COMMAND = 60;
+    /**
+     * {@link PassiveReader#getSoundForError() getSoundForError} command.
+     */
+    public static final int ZHAGA_GET_ERROR_SOUND_COMMAND = 61;
+    /**
+     * {@link PassiveReader#setLEDforInventory(int, int, int, int) setLEDforInventory} command.
+     */
+    public static final int ZHAGA_SET_INVENTORY_LED_COMMAND = 62;
+    /**
+     * {@link PassiveReader#getLEDforInventory() getLEDforInventory} command.
+     */
+    public static final int ZHAGA_GET_INVENTORY_LED_COMMAND = 63;
+    /**
+     * {@link PassiveReader#setLEDforCommand(int, int, int, int) setLEDforCommand} command.
+     */
+    public static final int ZHAGA_SET_COMMAND_LED_COMMAND = 64;
+    /**
+     * {@link PassiveReader#getLEDforCommand() getLEDforCommand} command.
+     */
+    public static final int ZHAGA_GET_COMMAND_LED_COMMAND = 65;
+    /**
+     * {@link PassiveReader#setLEDforError(int, int, int, int) setLEDforError} command.
+     */
+    public static final int ZHAGA_SET_ERROR_LED_COMMAND = 66;
+    /**
+     * {@link PassiveReader#getLEDforError() getLEDforError} command.
+     */
+    public static final int ZHAGA_GET_ERROR_LED_COMMAND = 67;
+    /**
+     * {@link PassiveReader#setVibrationForInventory(int, int, int) setVibrationForInventory} command.
+     */
+    public static final int ZHAGA_SET_INVENTORY_VIBRATION_COMMAND = 68;
+    /**
+     * {@link PassiveReader#getVibrationForInventory() getVibrationForInventory} command.
+     */
+    public static final int ZHAGA_GET_INVENTORY_VIBRATION_COMMAND = 69;
+    /**
+     * {@link PassiveReader#setVibrationForCommand(int, int, int) setVibrationForCommand} command.
+     */
+    public static final int ZHAGA_SET_COMMAND_VIBRATION_COMMAND = 70;
+    /**
+     * {@link PassiveReader#getVibrationForCommand() getVibrationForCommand} command.
+     */
+    public static final int ZHAGA_GET_COMMAND_VIBRATION_COMMAND = 71;
+    /**
+     * {@link PassiveReader#setVibrationForError(int, int, int) setVibrationForError} command.
+     */
+    public static final int ZHAGA_SET_ERROR_VIBRATION_COMMAND = 72;
+    /**
+     * {@link PassiveReader#getVibrationForError() getVibrationForError} command.
+     */
+    public static final int ZHAGA_GET_ERROR_VIBRATION_COMMAND = 73;
+    /**
+     * {@link PassiveReader#activateButton(int) activateButton} command.
+     */
+    public static final int ZHAGA_ACTIVATE_BUTTON_COMMAND = 74;
+    /**
+     * {@link PassiveReader#getActivatedButton() getActivatedButton} command.
+     */
+    public static final int ZHAGA_GET_ACTIVATED_BUTTON_COMMAND = 75;
+    /**
+     * {@link PassiveReader#setRFonOff(int, int, int) setRFonOff} command.
+     */
+    public static final int ZHAGA_SET_RF_ONOFF_COMMAND = 76;
+    /**
+     * {@link PassiveReader#getRFonOff() getRFonOff} command.
+     */
+    public static final int ZHAGA_GET_RF_ONOFF_COMMAND = 77;
+    /**
+     * {@link PassiveReader#setAutoOff(int) setAutoOff} command.
+     */
+    public static final int ZHAGA_SET_AUTOOFF_COMMAND = 78;
+    /**
+     * {@link PassiveReader#getAutoOff() getAutoOff} command.
+     */
+    public static final int ZHAGA_GET_AUTOOFF_COMMAND = 79;
+    /**
+     * {@link PassiveReader#defaultConfiguration() defaultConfiguration} command.
+     */
+    public static final int ZHAGA_DEFAULT_CONFIG_COMMAND = 80;
+    /**
+     * {@link PassiveReader#transparent(byte[]) transparent} command.
+     */
+    public static final int ZHAGA_TRANSPARENT_COMMAND = 81;
 
     /**
      * Successful command code (no error).
@@ -214,7 +421,6 @@ public abstract class AbstractReaderListener {
      * Invalid command error code.
      */
     public static final int INVALID_COMMAND_ERROR = 0x0F;
-
     /**
      * Reader write command failed error code.
      */
@@ -327,7 +533,10 @@ public abstract class AbstractReaderListener {
      * Reader set-mode error: previous operation in progress.
      */
     public static final int READER_SET_MODE_OPERATION_IN_PROGRESS_ERROR = 0x2B;
-
+    /**
+     * Reader answer wrong format error code.
+     */
+    public static final int READER_ANSWER_WRONG_FORMAT_ERROR = 0x2C;
 
     /**
      * Low battery status
@@ -569,6 +778,80 @@ public abstract class AbstractReaderListener {
     public static final int BLE_LESC_LEVEL_2_SECURITY = 0x02;
 
     /**
+     * BLE advertising -40dBm TX power
+     */
+    public static final int BLE_TX_POWER_MINUS_40_DBM = 0x00;
+    /**
+     * BLE advertising -20dBm TX power
+     */
+    public static final int BLE_TX_POWER_MINUS_20_DBM = 0x01;
+    /**
+     * BLE advertising -16dBm TX power
+     */
+    public static final int BLE_TX_POWER_MINUS_16_DBM = 0x02;
+    /**
+     * BLE advertising -12dBm TX power
+     */
+    public static final int BLE_TX_POWER_MINUS_12_DBM = 0x03;
+    /**
+     * BLE advertising -8dBm TX power
+     */
+    public static final int BLE_TX_POWER_MINUS_8_DBM = 0x04;
+    /**
+     * BLE advertising -4dBm TX power
+     */
+    public static final int BLE_TX_POWER_MINUS_4_DBM = 0x05;
+    /**
+     * BLE advertising 0dBm TX power
+     */
+    public static final int BLE_TX_POWER_0_DBM = 0x06;
+    /**
+     * BLE advertising +2dBm TX power
+     */
+    public static final int BLE_TX_POWER_2_DBM = 0x07;
+    /**
+     * BLE advertising +3dBm TX power
+     */
+    public static final int BLE_TX_POWER_3_DBM = 0x08;
+    /**
+     * BLE advertising +4dBm TX power
+     */
+    public static final int BLE_TX_POWER_4_DBM = 0x09;
+    /**
+     * BLE advertising +5dBm TX power
+     */
+    public static final int BLE_TX_POWER_5_DBM = 0x0A;
+    /**
+     * BLE advertising +6dBm TX power
+     */
+    public static final int BLE_TX_POWER_6_DBM = 0x0B;
+    /**
+     * BLE advertising +7dBm TX power
+     */
+    public static final int BLE_TX_POWER_7_DBM = 0x0C;
+    /**
+     * BLE advertising +8dBm TX power
+     */
+    public static final int BLE_TX_POWER_8_DBM = 0x0D;
+
+    /**
+     * Invoked after a {@link PassiveReader#getBLEfirmwareVersion()
+     * getBLEfirmwareVersion} method invocation to notify result.
+     *
+     * @param major the BLE MCU firmware version major number
+     * @param minor the BLE MCU firmware version minor number
+     */
+    public abstract void BLEfirmwareVersionEvent(int major, int minor);
+
+    /**
+     * Invoked after a {@link PassiveReader#getBLEpower() getBLEpower}
+     * method invocation to notify result.
+     *
+     * @param BLE_power the BLE advertising TX power
+     */
+    public abstract void BLEpowerEvent(int BLE_power);
+
+    /**
      * Invoked after a {@link PassiveReader#getEPCfrequency() getEPCfrequency}
      * method invocation to notify result.
      *
@@ -603,6 +886,14 @@ public abstract class AbstractReaderListener {
     public abstract void ISO15693optionBitsEvent(int option_bits);
 
     /**
+     * Invoked after a {@link PassiveReader#getMACaddress() getMACaddress}
+     * method invocation to notify result.
+     *
+     * @param MAC_address the BLE device MAC address (6-byte array)
+     */
+    public abstract void MACaddressEvent(byte MAC_address[]);
+
+    /**
      * Invoked after a {@link PassiveReader#getRFforISO15693tunnel()
      * getRFforISO15693tunnel} method invocation to notify result.
      *
@@ -620,6 +911,14 @@ public abstract class AbstractReaderListener {
      * @param mode  the RF power mode
      */
     public abstract void RFpowerEvent(int level, int mode);
+
+    /**
+     * Invoked after a {@link PassiveReader#getAdvertisingInterval() getAdvertisingInterval}
+     * method invocation to notify result.
+     *
+     * @param advertising_interval the BLE advertising interval (ms)
+     */
+    public abstract void advertisingIntervalEvent(int advertising_interval);
 
     /**
      * Invoked after a {@link PassiveReader#testAvailability() testAvailibility}
@@ -654,6 +953,24 @@ public abstract class AbstractReaderListener {
     public abstract void connectionFailedEvent(int error);
 
     /**
+     * Invoked after a {@link PassiveReader#getConnectionIntervalAndMTU() getConnectionIntervalAndMTU}
+     * method invocation to notify result.
+     *
+     * @param connection_interval the BLE negoziated connection interval value (ms)
+     * @param MTU                 the BLE negoziated MTU (byte)
+     */
+    public abstract void connectionIntervalAndMTUevent(float connection_interval, int MTU);
+
+    /**
+     * Invoked after a {@link PassiveReader#getConnectionInterval() getConnectionInterval}
+     * method invocation to notify result.
+     *
+     * @param min_interval the BLE connection interval minimum value (ms)
+     * @param max_interval the BLE connection interval maximum value (ms)
+     */
+    public abstract void connectionIntervalEvent(float min_interval, float max_interval);
+
+    /**
      * Invoked after a {@link PassiveReader#connect(String, android.content.Context)} method invocation
      * to notify success.
      */
@@ -675,6 +992,14 @@ public abstract class AbstractReaderListener {
     public abstract void firmwareVersionEvent(int major, int minor);
 
     /**
+     * Invoked after a {@link PassiveReader#getName() getName}
+     * method invocation to notify result.
+     *
+     * @param device_name the reader name
+     */
+    public abstract void nameEvent(String device_name);
+
+    /**
      * Invoked after a class {@code PassiveReader} method invocation to notify
      * result.
      *
@@ -687,7 +1012,7 @@ public abstract class AbstractReaderListener {
      * Invoked after a {@link PassiveReader#getSecurityLevel() getSecurityLevel}
      * method invocation to notify result.
      *
-     * @param level  the current security level
+     * @param level the current security level
      */
     public abstract void securityLevelEvent(int level);
 
@@ -700,6 +1025,22 @@ public abstract class AbstractReaderListener {
     public abstract void shutdownTimeEvent(int time);
 
     /**
+     * Invoked after a {@link PassiveReader#getSlaveLatency() getSlaveLatency}
+     * method invocation to notify result.
+     *
+     * @param slave_latency the BLE slave latency value
+     */
+    public abstract void slaveLatencyEvent(int slave_latency);
+
+    /**
+     * Invoked after a {@link PassiveReader#getSupervisionTimeout() getSupervisionTimeout}
+     * method invocation to notify result.
+     *
+     * @param supervision_timeout the BLE supervision timeout value (ms)
+     */
+    public abstract void supervisionTimeoutEvent(int supervision_timeout);
+
+    /**
      * Invoked after a {@link PassiveReader#ISO15693tunnel(byte[]) ISO15693tunnel}
      * or {@link PassiveReader#ISO15693encryptedTunnel(byte, byte[])
      * ISO15693encryptedTunnel} method invocation to notify result.
@@ -707,4 +1048,12 @@ public abstract class AbstractReaderListener {
      * @param data command answer data
      */
     public abstract void tunnelEvent(byte data[]);
+
+    /**
+     * Invoked after a {@link PassiveReader#readUserMemory(int) readUserMemory}
+     * method invocation to notify result.
+     *
+     * @param data_block the user memory data-block (64-byte array)
+     */
+    public abstract void userMemoryEvent(byte data_block[]);
 }

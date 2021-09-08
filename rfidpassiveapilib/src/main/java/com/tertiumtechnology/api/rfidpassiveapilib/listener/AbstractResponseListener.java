@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2020 Tertium Technology.
+ * Copyright 2021 Tertium Technology.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,7 +49,7 @@ public abstract class AbstractResponseListener {
     public static final int WRITE_COMMAND = 101;
     /**
      * {@link EPC_tag#lock(int, byte[]) lock} or
-     * {@link ISO15693_tag#lock(int, int) lock command.
+     * {@link ISO15693_tag#lock(int, int) lock} command.
      */
     public static final int LOCK_COMMAND = 102;
     /**

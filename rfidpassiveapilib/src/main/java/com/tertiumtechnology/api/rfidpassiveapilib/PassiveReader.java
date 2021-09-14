@@ -72,8 +72,9 @@ public final class PassiveReader implements ZhagaReader {
                 valid = false;
                 if (answer.length() >= 6) {
                     length = hexToByte(answer.substring(2, 4));
-                    if (bugfix && (length%2 != 0))
+                    if (bugfix && (length % 2 != 0)) {
                         length++;
+                    }
                     if (length == answer.length() - 2) {
                         sequential = hexToByte(answer.substring(4, 6));
                         return_code = hexToByte(answer.substring(6, 8));
@@ -281,10 +282,12 @@ public final class PassiveReader implements ZhagaReader {
                         break;
                     case '$':   // command answer
                         if (pending == AbstractResponseListener.READ_COMMAND ||
-                            pending == AbstractResponseListener.READ_TID_COMMAND)
+                                pending == AbstractResponseListener.READ_TID_COMMAND) {
                             answer = new ReaderAnswer(chunk, true);
-                        else
+                        }
+                        else {
                             answer = new ReaderAnswer(chunk, false);
+                        }
                         break;
                     case '#':
                     case '%':   // tunnel command answer
@@ -495,6 +498,9 @@ public final class PassiveReader implements ZhagaReader {
                                 //zhaga_listener.resultEvent(pending, answer.getReturnCode());
                                 //break;
                             case AbstractReaderListener.DEFAULT_SETUP_COMMAND:
+                                inventory_standard = ISO15693_STANDARD;
+                                inventory_mode = SCAN_ON_INPUT_MODE;
+                                inventory_timeout = 5; // 500ms
                                 resultEvent(pending, answer.getReturnCode());
                                 break;
                             case AbstractReaderListener.SET_INVENTORY_MODE_COMMAND:
@@ -1805,7 +1811,7 @@ public final class PassiveReader implements ZhagaReader {
     private static final byte REGISTER_OPTION_BITS = (byte) (0xF6);
     private static final byte REGISTER_RF_PARAMETERS_FOR_TUNNEL_MODE = (byte) (0xFB);
     private static final byte REGISTER_ADC_BATTERY_VALUE = (byte) (0xFC);
-    private static final byte RESET_TO_FACTORY_DEFAULT = (byte)(0xFE);
+    private static final byte RESET_TO_FACTORY_DEFAULT = (byte) (0xFE);
     /**
      * Inventory operation get ISO15693 and/or ISO14443A ID only.
      */
@@ -2188,12 +2194,12 @@ public final class PassiveReader implements ZhagaReader {
         int s = status;
         if (status != READY_STATUS) {
             reader_listener.resultEvent(AbstractReaderListener.DEFAULT_SETUP_COMMAND,
-                AbstractReaderListener.READER_DRIVER_WRONG_STATUS_ERROR);
+                    AbstractReaderListener.READER_DRIVER_WRONG_STATUS_ERROR);
             return;
         }
         if (UHF_device) {
             reader_listener.resultEvent(AbstractReaderListener.DEFAULT_SETUP_COMMAND,
-                AbstractReaderListener.READER_DRIVER_UNKNOW_COMMAND_ERROR);
+                    AbstractReaderListener.READER_DRIVER_UNKNOW_COMMAND_ERROR);
             return;
         }
         status = PENDING_COMMAND_STATUS;

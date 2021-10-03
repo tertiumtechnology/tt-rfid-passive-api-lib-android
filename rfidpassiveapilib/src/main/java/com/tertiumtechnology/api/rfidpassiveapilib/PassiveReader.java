@@ -496,7 +496,8 @@ public final class PassiveReader implements ZhagaReader {
                             case AbstractReaderListener.SET_DEVICE_NAME_COMMAND:
                                 //reader_listener.resultEvent(pending, answer.getReturnCode());
                                 //zhaga_listener.resultEvent(pending, answer.getReturnCode());
-                                //break;
+                                resultEvent(pending, answer.getReturnCode());
+                                break;
                             case AbstractReaderListener.DEFAULT_SETUP_COMMAND:
                                 inventory_standard = ISO15693_STANDARD;
                                 inventory_mode = SCAN_ON_INPUT_MODE;
@@ -1189,16 +1190,28 @@ public final class PassiveReader implements ZhagaReader {
         @Override
         public void onTxRxServiceDiscovered() {
             System.err.println("TxRx service discovered.");
-            status = UNINITIALIZED_STATUS;
-            sub_status = STREAM_SUBSTATUS;
 
-            new Handler(Looper.getMainLooper()).postDelayed(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            device_manager.requestWriteData(buildCommand(SETSTANDARD_COMMAND));
-                        }
-                    }, 1000);
+            if (zhaga_device) {
+                status = READY_STATUS;
+                sub_status = STREAM_SUBSTATUS;
+                HF_device = true;
+                UHF_device = false;
+                inventory_standard = ISO15693_STANDARD; // ?
+                reader_listener.connectionSuccessEvent();
+                zhaga_listener.connectionSuccessEvent();
+            }
+            else {
+                status = UNINITIALIZED_STATUS;
+                sub_status = STREAM_SUBSTATUS;
+
+                new Handler(Looper.getMainLooper()).postDelayed(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                device_manager.requestWriteData(buildCommand(SETSTANDARD_COMMAND));
+                            }
+                        }, 1000);
+            }
         }
 
         @Override
@@ -1938,7 +1951,7 @@ public final class PassiveReader implements ZhagaReader {
         if (instance == null) {
             instance = new PassiveReader(bluetoothAdapter);
         }
-        instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, bleSettings);
+        instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, false, bleSettings);
         return instance;
     }
 
@@ -1950,7 +1963,7 @@ public final class PassiveReader implements ZhagaReader {
         if (instance == null) {
             instance = new PassiveReader(bluetoothAdapter);
         }
-        instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, bleSettings);
+        instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, false, bleSettings);
         return instance;
     }
 
@@ -1963,7 +1976,7 @@ public final class PassiveReader implements ZhagaReader {
         if (instance == null) {
             instance = new PassiveReader(bluetoothAdapter);
         }
-        instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, bleSettings);
+        instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, true, bleSettings);
         return instance;
     }
 
@@ -1994,6 +2007,7 @@ public final class PassiveReader implements ZhagaReader {
     private volatile boolean HF_device;
     private volatile boolean UHF_device;
     private volatile boolean inventory_enabled;
+    private volatile boolean zhaga_device;
     protected volatile int status;
     protected volatile int sub_status;
     protected volatile int sequential;
@@ -4367,7 +4381,8 @@ public final class PassiveReader implements ZhagaReader {
     private void init(AbstractInventoryListener inventory_listener,
                       AbstractReaderListener reader_listener,
                       AbstractResponseListener response_listener,
-                      AbstractZhagaListener zhaga_listener, BleSettings bleSettings) {
+                      AbstractZhagaListener zhaga_listener, boolean zhaga_device, BleSettings bleSettings) {
+        this.zhaga_device = zhaga_device;
         this.inventory_listener = inventory_listener;
         this.reader_listener = reader_listener;
         this.response_listener = response_listener;

@@ -915,13 +915,32 @@ public final class PassiveReader implements ZhagaReader {
                         }
                         else {// answer mismatch
                             /*
-                            reader_listener.resultEvent(pending,
-                                    AbstractReaderListener.READER_COMMAND_ANSWER_MISMATCH_ERROR);
-                            zhaga_listener.resultEvent(pending,
-                                    AbstractZhagaListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
-                            */
                             resultEvent(pending,
                                     AbstractReaderListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                             */
+                            if (pending >= AbstractReaderListener.SOUND_COMMAND &&
+                                pending <= AbstractReaderListener.SET_INVENTORY_TYPE_COMMAND)
+                                resultEvent(pending, AbstractReaderListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                            else {
+                                switch (pending) {
+                                    case AbstractResponseListener.READ_COMMAND:         PassiveReader.response_listener.readEvent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR, null);
+                                        break;
+                                    case AbstractResponseListener.WRITE_COMMAND:        PassiveReader.response_listener.writeEvent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                                        break;
+                                    case AbstractResponseListener.LOCK_COMMAND:         PassiveReader.response_listener.lockEvent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                                        break;
+                                    case AbstractResponseListener.WRITEID_COMMAND:      PassiveReader.response_listener.writeIDevent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                                        break;
+                                    case AbstractResponseListener.READ_TID_COMMAND:     PassiveReader.response_listener.readTIDevent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR, null);
+                                        break;
+                                    case AbstractResponseListener.KILL_COMMAND:         PassiveReader.response_listener.killEvent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                                        break;
+                                    case AbstractResponseListener.WRITEKILLPASSWORD_COMMAND:
+                                    case AbstractResponseListener.WRITEACCESSPASSWORD_COMMAND:
+                                        PassiveReader.response_listener.writePasswordEvent(tag_ID, AbstractResponseListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
+                                        break;
+                                }
+                            }
                         }
                     }
                     status = READY_STATUS;

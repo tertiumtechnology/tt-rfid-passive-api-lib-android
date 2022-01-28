@@ -21,8 +21,9 @@ import java.util.Arrays;
 public class PassiveScanner {
 
     private static String[] filteredServiceUuids = new String[]{
-            "175f8f23-a570-49bd-9627-815a6a27de2a", // TxRxAckme
-            "3cc30001-cb91-4947-bd12-80d2f0535a30" // Zhaga
+            "175f8f23-a570-49bd-9627-815a6a27de2a", // Zentri Ackme
+            "3cc30001-cb91-4947-bd12-80d2f0535a30", // Zhaga
+            "d7080001-052c-46c4-9978-c0977bebf328" // Tertium TxRx
     };
 
     private AbstractScanListener scanListener;

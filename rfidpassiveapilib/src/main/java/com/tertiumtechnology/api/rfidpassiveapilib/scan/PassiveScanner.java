@@ -1,7 +1,6 @@
 package com.tertiumtechnology.api.rfidpassiveapilib.scan;
 
 import android.bluetooth.BluetoothAdapter;
-import android.os.Build;
 
 import com.tertiumtechnology.txrxlib.scan.TxRxScanCallback;
 import com.tertiumtechnology.txrxlib.scan.TxRxScanResult;
@@ -76,12 +75,7 @@ public class PassiveScanner {
      * ACCESS_FINE_LOCATION} permission in order to get results.
      */
     public void startScan() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
-        }
-        else {
-            txRxScanner.startScan();
-        }
+        txRxScanner.startScan(Arrays.asList(filteredServiceUuids));
     }
 
     /**

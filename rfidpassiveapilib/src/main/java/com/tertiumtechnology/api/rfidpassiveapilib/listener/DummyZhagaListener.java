@@ -1,13 +1,15 @@
 package com.tertiumtechnology.api.rfidpassiveapilib.listener;
 
+import android.bluetooth.BluetoothAdapter;
+
 import com.tertiumtechnology.api.rfidpassiveapilib.PassiveReader;
+import com.tertiumtechnology.api.rfidpassiveapilib.util.BleSettings;
 
 /**
  * Dummy listener for inventory operations.
  * <p>
  * This dummy listener is used if a legacy instance of {@code PassiveReader} is
- * created calling {@link PassiveReader#getInstance(AbstractInventoryListener,
- * AbstractReaderListener, AbstractResponseListener) getInstance} static method.
+ * created calling {@link PassiveReader#getInstance(AbstractInventoryListener, AbstractReaderListener, AbstractResponseListener, BluetoothAdapter, BleSettings)}  getInstance} static method.
  */
 public class DummyZhagaListener extends AbstractZhagaListener {
 

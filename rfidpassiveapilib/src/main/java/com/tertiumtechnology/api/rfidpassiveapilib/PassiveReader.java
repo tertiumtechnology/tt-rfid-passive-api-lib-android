@@ -737,7 +737,7 @@ public final class PassiveReader implements ZhagaReader {
                             case AbstractZhagaListener.ZHAGA_GET_RF_COMMAND:
                                 if (answer.getReturnCode() == AbstractReaderListener.NO_ERROR &&
                                         answer.getData().length > 0) {
-                                    zhaga_listener.RFevent((answer.getData()[0] == 0x01 ? true : false));
+                                    zhaga_listener.RFevent((answer.getData()[0] == 0x01));
                                 }
                                 zhaga_listener.resultEvent(pending, answer.getReturnCode());
                                 break;
@@ -1224,12 +1224,7 @@ public final class PassiveReader implements ZhagaReader {
                 sub_status = STREAM_SUBSTATUS;
 
                 new Handler(Looper.getMainLooper()).postDelayed(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                device_manager.requestWriteData(buildCommand(SETSTANDARD_COMMAND));
-                            }
-                        }, 1000);
+                        () -> device_manager.requestWriteData(buildCommand(SETSTANDARD_COMMAND)), 1000);
             }
         }
 

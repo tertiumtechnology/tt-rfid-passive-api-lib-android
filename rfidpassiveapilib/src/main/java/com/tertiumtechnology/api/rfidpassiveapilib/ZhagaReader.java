@@ -24,16 +24,18 @@
 
 package com.tertiumtechnology.api.rfidpassiveapilib;
 
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 
 import com.tertiumtechnology.api.rfidpassiveapilib.listener.AbstractReaderListener;
 import com.tertiumtechnology.api.rfidpassiveapilib.listener.AbstractZhagaListener;
+import com.tertiumtechnology.api.rfidpassiveapilib.util.BleSettings;
 
 /**
  * Interface for instance(s) of {@code PassiveReader} limited to Zhaga standard protocol.
  * <p>
  * A concrete instance of {@code ZhagaReader} is created calling
- * {@link PassiveReader#getZhagaReaderInstance(AbstractZhagaListener)
+ * {@link PassiveReader#getZhagaReaderInstance(AbstractZhagaListener, BluetoothAdapter, BleSettings)}
  * getZhagaReaderInstance} static method..
  */
 public interface ZhagaReader {

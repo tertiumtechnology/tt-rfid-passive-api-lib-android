@@ -22,7 +22,8 @@ public class PassiveScanner {
     private static String[] filteredServiceUuids = new String[]{
             "175f8f23-a570-49bd-9627-815a6a27de2a", // Zentri Ackme
             "3cc30001-cb91-4947-bd12-80d2f0535a30", // Zhaga
-            "d7080001-052c-46c4-9978-c0977bebf328" // Tertium TxRx
+            "d7080001-052c-46c4-9978-c0977bebf328", // Tertium TxRx
+            "c1ff0001-c47e-424d-9495-fb504404b8f5"  // Tertium Zebra
     };
 
     private AbstractScanListener scanListener;

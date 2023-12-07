@@ -322,21 +322,42 @@ public final class PassiveReader implements ZhagaReader {
                             int separator_index = chunk.indexOf(" ");
                             if (separator_index < 0) {
                                 if (chunk.length() > 4) {
-                                    short PC = (short) hexToWord(chunk.substring(0, 4));
-                                    byte[] ID = new byte[(chunk.length() - 4) / 2];
-                                    for (int n = 0; n < ID.length; n++) {
-                                        ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                                    short PC;
+                                    byte[] ID;
+                                    if (inventory_format == EPC_AND_PC_FORMAT) {
+                                        PC = (short) hexToWord(chunk.substring(0, 4));
+                                        ID = new byte[(chunk.length() - 4) / 2];
+                                        for (int n = 0; n < ID.length; n++) {
+                                            ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                                        }
+                                        tag = new EPC_tag((short) -128, PC, ID, passive_reader);
                                     }
-                                    tag = new EPC_tag((short) -128, PC, ID, passive_reader);
+                                    else {
+                                        // EPC_ONLY_FORMAT
+                                        ID = new byte[chunk.length()/2];
+                                        for (int n=0; n<ID.length; n++)
+                                            ID[n] = (byte)hexToByte(chunk.substring(2*n, 2*n+2));
+                                        tag = new EPC_simple_tag((short) -128, ID, passive_reader);
+                                    }
                                     inventory_listener.inventoryEvent(tag);
                                 }
                             }
                             else {
                                 if (chunk.length() > 7) {
-                                    short PC = (short) hexToWord(chunk.substring(0, 4));
-                                    byte[] ID = new byte[(chunk.length() - 7) / 2];
-                                    for (int n = 0; n < ID.length; n++) {
-                                        ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                                    short PC = 0x0000;
+                                    byte[] ID;
+                                    if (inventory_format == EPC_AND_PC_FORMAT) {
+                                        PC = (short) hexToWord(chunk.substring(0, 4));
+                                        ID = new byte[(chunk.length() - 7) / 2];
+                                        for (int n = 0; n < ID.length; n++) {
+                                            ID[n] = (byte) hexToByte(chunk.substring(4 + 2 * n, 4 + 2 * n + 2));
+                                        }
+                                    }
+                                    else {
+                                        // EPC_ONLY_FORMAT
+                                        ID = new byte[chunk.length()/2];
+                                        for (int n=0; n<ID.length; n++)
+                                            ID[n] = (byte)hexToByte(chunk.substring(2*n, 2*n+2));
                                     }
                                     String rssi = chunk.substring(separator_index + 1, separator_index + 1 + 2);
                                     int tmp = hexToWord(rssi);
@@ -347,7 +368,10 @@ public final class PassiveReader implements ZhagaReader {
                                     else {
                                         RSSI = (short) (tmp - 256);
                                     }
-                                    tag = new EPC_tag(RSSI, PC, ID, passive_reader);
+                                    if (inventory_format == EPC_AND_PC_FORMAT)
+                                        tag = new EPC_tag(RSSI, PC, ID, passive_reader);
+                                    else // EPC_ONLY_FORMAT
+                                        tag = new EPC_simple_tag(RSSI, ID, passive_reader);
                                     inventory_listener.inventoryEvent(tag);
                                 }
                             }
@@ -417,8 +441,9 @@ public final class PassiveReader implements ZhagaReader {
                         if (answer.getReturnCode() != SUCCESSFUL_OPERATION_RETCODE &&
                                 pending != AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) {
                             status = READY_STATUS;
-                            if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                                    pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) {
+                            if ((pending >= AbstractReaderListener.SOUND_COMMAND &&
+                                    pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) ||
+                                    pending == AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND) {
                                 //reader_listener.resultEvent(pending, answer.getReturnCode());
                                 //zhaga_listener.resultEvent(pending, answer.getReturnCode());
                                 resultEvent(pending, answer.getReturnCode());
@@ -498,6 +523,11 @@ public final class PassiveReader implements ZhagaReader {
                                 //zhaga_listener.resultEvent(pending, answer.getReturnCode());
                                 resultEvent(pending, answer.getReturnCode());
                                 break;
+                            case AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND:
+                                if (answer.getReturnCode() == AbstractReaderListener.NO_ERROR)
+                                    inventory_format = format;
+                                reader_listener.resultEvent(pending, answer.getReturnCode());
+                                break;
                             case AbstractReaderListener.DEFAULT_SETUP_COMMAND:
                                 inventory_standard = ISO15693_STANDARD;
                                 inventory_mode = SCAN_ON_INPUT_MODE;
@@ -505,9 +535,11 @@ public final class PassiveReader implements ZhagaReader {
                                 resultEvent(pending, answer.getReturnCode());
                                 break;
                             case AbstractReaderListener.SET_INVENTORY_MODE_COMMAND:
+                                /*
                                 if (answer.getReturnCode() == AbstractReaderListener.NO_ERROR) {
                                     inventory_mode = mode;
                                 }
+                                */
                                 reader_listener.resultEvent(pending, answer.getReturnCode());
                                 break;
                             case AbstractReaderListener.SET_INVENTORY_TYPE_COMMAND:
@@ -918,8 +950,10 @@ public final class PassiveReader implements ZhagaReader {
                             resultEvent(pending,
                                     AbstractReaderListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
                              */
-                            if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                                pending <= AbstractReaderListener.SET_INVENTORY_TYPE_COMMAND)
+                            if ((pending >= AbstractReaderListener.SOUND_COMMAND &&
+                                    //pending <= AbstractReaderListener.SET_INVENTORY_TYPE_COMMAND)
+                                    pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) ||
+                                    pending == AbstractReaderListener. SET_INVENTORY_FORMAT_COMMAND)
                                 resultEvent(pending, AbstractReaderListener.READER_DRIVER_COMMAND_ANSWER_MISMATCH_ERROR);
                             else {
                                 switch (pending) {
@@ -985,8 +1019,9 @@ public final class PassiveReader implements ZhagaReader {
                         device_manager.requestSetMode(STREAM_MODE);
                         break;
                     }
-                    if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) {
+                    if ((pending >= AbstractReaderListener.SOUND_COMMAND &&
+                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) ||
+                            pending == AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND) {
                         //reader_listener.resultEvent(pending, error);
                         //zhaga_listener.resultEvent(pending, error);
                         resultEvent(pending, error);
@@ -1044,8 +1079,9 @@ public final class PassiveReader implements ZhagaReader {
                         device_manager.requestSetMode(STREAM_MODE);
                         break;
                     }
-                    if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) {
+                    if ((pending >= AbstractReaderListener.SOUND_COMMAND &&
+                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) ||
+                            pending == AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND) {
                         //reader_listener.resultEvent(pending, AbstractReaderListener.READER_READ_TIMEOUT_ERROR);
                         //zhaga_listener.resultEvent(pending, AbstractZhagaListener.READER_READ_TIMEOUT_ERROR);
                         resultEvent(pending, AbstractZhagaListener.READER_READ_TIMEOUT_ERROR);
@@ -1276,8 +1312,9 @@ public final class PassiveReader implements ZhagaReader {
                         device_manager.requestSetMode(STREAM_MODE);
                         break;
                     }
-                    if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) {
+                    if ((pending >= AbstractReaderListener.SOUND_COMMAND &&
+                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) ||
+                            pending == AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND) {
                         //reader_listener.resultEvent(pending, error);
                         //zhaga_listener.resultEvent(pending, error);
                         resultEvent(pending, error);
@@ -1335,8 +1372,9 @@ public final class PassiveReader implements ZhagaReader {
                         device_manager.requestSetMode(STREAM_MODE);
                         break;
                     }
-                    if (pending >= AbstractReaderListener.SOUND_COMMAND &&
-                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) {
+                    if ((pending >= AbstractReaderListener.SOUND_COMMAND &&
+                            pending < AbstractReaderListener.ZHAGA_TRANSPARENT_COMMAND) ||
+                            pending == AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND) {
                         //reader_listener.resultEvent(pending, AbstractReaderListener.READER_WRITE_TIMEOUT_ERROR);
                         //zhaga_listener.resultEvent(pending, AbstractZhagaListener.READER_WRITE_TIMEOUT_ERROR);
                         resultEvent(pending, AbstractZhagaListener.READER_WRITE_TIMEOUT_ERROR);
@@ -1398,8 +1436,9 @@ public final class PassiveReader implements ZhagaReader {
                 zhaga_listener.resultEvent(command_code, error_code);
                 return;
             }
-            if (command_code >= AbstractReaderListener.SET_ADVERTISING_INTERVAL_COMMAND &&
-                    command_code < AbstractReaderListener.RESET_COMMAND) {
+            if ((command_code >= AbstractReaderListener.SET_ADVERTISING_INTERVAL_COMMAND &&
+                    command_code < AbstractReaderListener.RESET_COMMAND) ||
+                    command_code == AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND) {
                 reader_listener.resultEvent(command_code, error_code);
                 return;
             }
@@ -1846,11 +1885,11 @@ public final class PassiveReader implements ZhagaReader {
     /**
      * Inventory operation get EPC tag ID only.
      */
-    private static final int EPC_ONLY_FORMAT = 0x01;
+    public static final int EPC_ONLY_FORMAT = 0x01;
     /**
      * Inventory operation get ECP tag ID and PC (Protocol Code).
      */
-    private static final int EPC_AND_PC_FORMAT = 0x03;
+    public static final int EPC_AND_PC_FORMAT = 0x03;
     /**
      * Inventory operation get EPC tag ID e TID (tag unique ID).
      */
@@ -2037,7 +2076,7 @@ public final class PassiveReader implements ZhagaReader {
         device_manager = new TxRxDeviceManager(bluetoothAdapter, device_callback);
         sequential = 0;
         inventory_enabled = false;
-        inventory_mode = NORMAL_MODE; // ???
+        inventory_mode = SCAN_ON_INPUT_MODE; //NORMAL_MODE;
     }
 
     /**
@@ -3543,6 +3582,40 @@ public final class PassiveReader implements ZhagaReader {
     }
 
     /**
+     * Set the inventory response format for the UHF reader device.
+     * <p>
+     * Response to the command received via {@link
+     * AbstractReaderListener#resultEvent(int, int) resultEvent} method
+     * invocation.
+     *
+     * @param format  the inventory response format
+     */
+    public synchronized void setInventoryFormat(int format)
+    {
+        int s = status;
+        if (status != READY_STATUS) {
+            reader_listener.resultEvent(AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND,
+                    AbstractReaderListener.READER_DRIVER_WRONG_STATUS_ERROR);
+            return;
+        }
+        if (HF_device) {
+            reader_listener.resultEvent(AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND,
+                    AbstractReaderListener.READER_DRIVER_UNKNOW_COMMAND_ERROR);
+            return;
+        }
+        if (format != EPC_AND_PC_FORMAT && format != EPC_ONLY_FORMAT) {
+            reader_listener.resultEvent(AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND,
+                    AbstractReaderListener.READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR);
+            return;
+        }
+        this.format = format;
+        status = PENDING_COMMAND_STATUS;
+        pending = AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND;
+        device_manager.requestWriteData(buildCommand(SETMODE_COMMAND, (byte)(mode), (byte)(feedback),
+                (byte)(format), (byte)(max_number), (byte)(timeout/100), (byte)(interval/100)));
+    }
+
+    /**
      * Set the inventory operating mode for the reader device.
      * <p>
      * Response to the command received via {@link
@@ -3579,7 +3652,7 @@ public final class PassiveReader implements ZhagaReader {
      * invocation.
      *
      * @param feedback the reader device local feedback for detected tag(s)
-     * @param timeout  the inventory scan time (milliseconds: 100-2000)
+     * @param timeout  the inventory scan time (milliseconds: 100-25500)
      * @param interval the inventory repetition period (milliseconds: 100-25500)
      */
     public synchronized void setInventoryParameters(int feedback, int timeout, int interval) {
@@ -3594,7 +3667,7 @@ public final class PassiveReader implements ZhagaReader {
                     AbstractReaderListener.READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR);
             return;
         }
-        if (timeout < 100 || timeout > 2000) {
+        if (timeout < 100 || timeout > 25500) {
             reader_listener.resultEvent(AbstractReaderListener.SET_INVENTORY_PARAMETERS_COMMAND,
                     AbstractReaderListener.READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR);
             return;
@@ -3604,16 +3677,16 @@ public final class PassiveReader implements ZhagaReader {
                     AbstractReaderListener.READER_DRIVER_COMMAND_WRONG_PARAMETER_ERROR);
             return;
         }
-        //mode = NORMAL_MODE;
         this.feedback = feedback;
         if (HF_device) {
             format = ID_ONLY_FORMAT;
         }
         else // UHF_device
         {
-            format = EPC_AND_PC_FORMAT;
+            format = EPC_ONLY_FORMAT; //EPC_AND_PC_FORMAT;
         }
         max_number = 0;
+        mode = SCAN_ON_INPUT_MODE;
         this.timeout = timeout / 100;
         this.interval = interval / 100;
         status = PENDING_COMMAND_STATUS;

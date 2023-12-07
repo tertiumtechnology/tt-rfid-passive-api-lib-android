@@ -390,6 +390,11 @@ public abstract class AbstractReaderListener {
     public static final int ZHAGA_TRANSPARENT_COMMAND = 81;
 
     /**
+     * {@link PassiveReader#setInventoryFormat(int) setInventoryFormat} command.
+     */
+    public static final int SET_INVENTORY_FORMAT_COMMAND = 82;
+
+    /**
      * Successful command code (no error).
      */
     public static final int NO_ERROR = 0x00;

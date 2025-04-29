@@ -1986,7 +1986,6 @@ public final class PassiveReader implements ZhagaReader {
     protected static final byte ZHAGA_AUTOOFF = (byte) (0xFE);
     protected static final byte ZHAGA_DEFAULT = (byte) (0xFF);
 
-    private static PassiveReader instance = null;
     private static AbstractInventoryListener inventory_listener;
     private static AbstractReaderListener reader_listener;
     private static TxRxDeviceCallback device_callback;
@@ -2001,9 +2000,7 @@ public final class PassiveReader implements ZhagaReader {
                                                     bluetoothAdapter, BleSettings bleSettings) {
         DummyZhagaListener zhaga_listener = new DummyZhagaListener();
 
-        if (instance == null) {
-            instance = new PassiveReader(bluetoothAdapter);
-        }
+        PassiveReader instance = new PassiveReader(bluetoothAdapter);
         instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, false, bleSettings);
         return instance;
     }
@@ -2013,9 +2010,7 @@ public final class PassiveReader implements ZhagaReader {
                                                          AbstractResponseListener response_listener,
                                                          AbstractZhagaListener zhaga_listener, BluetoothAdapter
                                                                  bluetoothAdapter, BleSettings bleSettings) {
-        if (instance == null) {
-            instance = new PassiveReader(bluetoothAdapter);
-        }
+        PassiveReader instance = new PassiveReader(bluetoothAdapter);
         instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, false, bleSettings);
         return instance;
     }
@@ -2025,10 +2020,8 @@ public final class PassiveReader implements ZhagaReader {
         DummyInventoryListener inventory_listener = new DummyInventoryListener();
         DummyResponseListener response_listener = new DummyResponseListener();
         DummyReaderListener reader_listener = new DummyReaderListener();
-
-        if (instance == null) {
-            instance = new PassiveReader(bluetoothAdapter);
-        }
+        
+        PassiveReader instance = new PassiveReader(bluetoothAdapter);
         instance.init(inventory_listener, reader_listener, response_listener, zhaga_listener, true, bleSettings);
         return instance;
     }
@@ -3612,7 +3605,7 @@ public final class PassiveReader implements ZhagaReader {
         status = PENDING_COMMAND_STATUS;
         pending = AbstractReaderListener.SET_INVENTORY_FORMAT_COMMAND;
         device_manager.requestWriteData(buildCommand(SETMODE_COMMAND, (byte)(mode), (byte)(feedback),
-                (byte)(format), (byte)(max_number), (byte)(timeout/100), (byte)(interval/100)));
+                (byte)(format), (byte)(max_number), (byte)(timeout), (byte)(interval)));
     }
 
     /**

@@ -83,7 +83,11 @@ public class EPC_tag extends Tag {
     /**
      * EPC tag ID unwritable lock code.
      */
-    public static final int ID_NOTWRITABLE = 0x0C0C0F;
+    public static final int ID_NOTWRITABLE = 0x0C030F;
+    /**
+     * EPC tag ID unwritable lock code and memory password (read/write) lock code.
+     */
+    public static final int ID_NOTWRITABLE_BOTHPASSWORD_NOTACCESSIBLE = 0xFC3F0F;
     /**
      * EPC tag TID unwritable lock code.
      */
